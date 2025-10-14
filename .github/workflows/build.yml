@@ -32,19 +32,19 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: aslet-linux
+          name: libaslet.so
           path: target/release/libaslet.so
 
       - name: Upload Windows Binaries
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: aslet-windows
+          name: aslet.dll
           path: target/release/aslet.dll
 
       - name: Upload macOS Binaries
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: aslet-macos
+          name: libaslet.dylib
           path: target/release/libaslet.dylib
