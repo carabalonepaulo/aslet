@@ -13,6 +13,7 @@ use crate::{
         task::{AsletTask, TaskContext},
         transaction::AsletTransaction,
     },
+    error::{Error, InternalError},
     failed, ok,
     result::variant_from_result,
     worker::{
@@ -144,9 +145,10 @@ impl Aslet {
                     self.complete_task(task_ctx, failed!(e));
                 }
             },
-            OutputMessage::Canceled(task_ctx) => {
-                self.complete_task(task_ctx, failed!("task canceled"))
-            }
+            OutputMessage::Canceled(task_ctx) => self.complete_task(
+                task_ctx,
+                failed!(Error::Internal(InternalError::TaskCanceled)),
+            ),
         }
     }
 

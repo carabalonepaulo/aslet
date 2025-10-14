@@ -7,6 +7,7 @@ const RUSQLITE: i64 = 12000;
 pub enum InternalError {
     InvalidConnection(usize),
     InvalidTransaction,
+    TaskCanceled,
 }
 
 impl From<&InternalError> for i64 {
@@ -15,6 +16,7 @@ impl From<&InternalError> for i64 {
             + match value {
                 InternalError::InvalidConnection(_) => 1,
                 InternalError::InvalidTransaction => 2,
+                InternalError::TaskCanceled => 3,
             }
     }
 }
@@ -26,6 +28,7 @@ impl Display for InternalError {
                 write!(f, "invalid connection id: {}", conn_id)
             }
             InternalError::InvalidTransaction => write!(f, "invalid transaction"),
+            InternalError::TaskCanceled => write!(f, "task canceled"),
         }
     }
 }

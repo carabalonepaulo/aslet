@@ -16,13 +16,8 @@ macro_rules! failed {
     ($err:expr) => {{
         let mut array = VariantArray::new();
         array.push(&godot::global::Error::FAILED.to_variant());
-        array.push(&$err.to_string().to_variant());
-        array
-    }};
-    ($($value:expr),* $(,)?) => {{
-        let mut array = VariantArray::new();
-        array.push(&godot::global::Error::FAILED.to_variant());
-        $(array.push(&$value.to_variant());)*
+        array.push(&(i64::from(&$err)).to_variant());
+        array.push(&($err.to_string()).to_variant());
         array
     }};
 }
@@ -36,7 +31,7 @@ where
             ok!(value)
         }
         Err(err) => {
-            failed!(i64::from(&err), err.to_string())
+            failed!(err)
         }
     }
 }
