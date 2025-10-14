@@ -24,10 +24,6 @@ jobs:
       - name: Build
         run: cargo build --release --verbose
 
-      - name: List target/release directory (for debugging)
-        run: ls -l target/release/
-        shell: bash # Garante que 'ls' funcione em Windows também
-
       - name: Upload Linux Binaries
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4

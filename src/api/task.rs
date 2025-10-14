@@ -8,18 +8,13 @@ use sharded_slab::Slab;
 
 pub fn create(slab: &Slab<Gd<AsletTask>>) -> (TaskContext, Gd<AsletTask>) {
     let entry = slab.vacant_entry().unwrap();
-    let state = Arc::new(AtomicU8::new(WAITING));
     let id = entry.key();
-    let task = AsletTask::new(state.clone());
-    let task_ctx = TaskContext::new(id, state);
+    let task_ctx = TaskContext::new(id);
+    let task = AsletTask::new(task_ctx.clone());
 
     entry.insert(task.clone());
     (task_ctx, task)
 }
-
-pub const WAITING: u8 = 0;
-pub const CANCELED: u8 = 1;
-pub const DONE: u8 = 2;
 
 /// Represents an asynchronous operation in progress.
 ///
@@ -28,7 +23,7 @@ pub const DONE: u8 = 2;
 #[derive(GodotClass)]
 #[class(no_init, base=RefCounted)]
 pub struct AsletTask {
-    state: Arc<AtomicU8>,
+    ctx: TaskContext,
 }
 
 #[godot_api]
@@ -41,8 +36,8 @@ impl AsletTask {
     fn done(result: Variant);
 
     /// Creates a new [`AsletTask`] with the given internal state.
-    pub fn new(state: Arc<AtomicU8>) -> Gd<Self> {
-        Gd::from_object(Self { state })
+    pub fn new(ctx: TaskContext) -> Gd<Self> {
+        Gd::from_object(Self { ctx })
     }
 
     /// Attempts to cancel the task if it is still waiting.
@@ -52,33 +47,42 @@ impl AsletTask {
     /// - `FAILED` if the task was already running or finished.
     #[func]
     pub fn cancel(&self) -> godot::global::Error {
-        match self
-            .state
-            .compare_exchange(WAITING, CANCELED, SeqCst, SeqCst)
-        {
-            Ok(_) => godot::global::Error::OK,
-            Err(_) => godot::global::Error::FAILED,
+        if self.ctx.cancel() {
+            godot::global::Error::OK
+        } else {
+            godot::global::Error::FAILED
         }
     }
 }
 
-#[derive(Debug)]
-pub struct TaskContext(usize, Arc<AtomicU8>);
+#[derive(Debug, Clone)]
+pub struct TaskContext(Arc<(usize, AtomicU8)>);
 
 impl TaskContext {
-    pub fn new(id: usize, state: Arc<AtomicU8>) -> Self {
-        Self(id, state)
+    const WAITING: u8 = 0;
+    const CANCELED: u8 = 1;
+    const DONE: u8 = 2;
+
+    pub fn new(id: usize) -> Self {
+        Self(Arc::new((id, AtomicU8::new(Self::WAITING))))
+    }
+
+    fn cancel(&self) -> bool {
+        self.0
+            .1
+            .compare_exchange(Self::WAITING, Self::CANCELED, SeqCst, SeqCst)
+            .is_ok()
     }
 
     pub fn id(&self) -> usize {
-        self.0
+        self.0.0
     }
 
     pub fn is_canceled(&self) -> bool {
-        self.1.load(SeqCst) == CANCELED
+        self.0.1.load(SeqCst) == Self::CANCELED
     }
 
     pub fn done(&self) {
-        self.1.store(DONE, SeqCst);
+        self.0.1.store(Self::DONE, SeqCst);
     }
 }
