@@ -12,6 +12,5 @@ godot = { version = "0.2.4", features = [
     "register-docs",
 ] }
 rusqlite = { version = "0.37.0", features = ["bundled", "backup"] }
-sharded-slab = "0.1.7"
 crossbeam = "0.8.4"
 slab = "0.4.11"
