@@ -69,9 +69,9 @@ unsafe impl Send for BackupRequest {}
 ///     This is safe because:
 ///     *   The `BackupState` struct *owns* `src`, `dst`, and `backup`, ensuring they are
 ///         co-located and dropped together.
-///     *   Rust's drop order guarantees that fields are dropped in reverse order of their
-///         declaration. In `BackupState`, `backup` is declared *after* `src` and `dst` (in the code,
-///         though it would technically be dropped first if it were declared first). This ensures that `backup` is dropped *before* `src` and `dst`.
+///     *   Rust's drop order guarantees that fields are dropped in declaration order.
+///         In `BackupState`, `backup` is declared *before* `src` and `dst`.
+///         This ensures that `backup` is dropped *before* `src` and `dst`.
 ///     *   Crucially, `rusqlite::backup::Backup::drop` performs a significant operation:
 ///         it calls `sqlite3_backup_finish`. During this `drop` operation, the `backup` object
 ///         requires its internal references to `src` and `dst` to still be valid.
@@ -85,9 +85,9 @@ unsafe impl Send for BackupRequest {}
 ///
 #[allow(unused)]
 pub struct BackupState {
+    backup: Backup<'static, 'static>,
     src: Box<Connection>,
     dst: Box<Connection>,
-    backup: Backup<'static, 'static>,
     step: i32,
     done: bool,
     progress: Callable,
