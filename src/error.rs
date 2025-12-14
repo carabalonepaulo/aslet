@@ -46,9 +46,9 @@ impl From<&Error> for i64 {
     fn from(value: &Error) -> Self {
         match value {
             Error::Internal(error) => error.into(),
-            Error::Sqlite(error) => match error.sqlite_error_code() {
-                Some(code) => code as i64,
-                None => {
+            Error::Sqlite(error) => match error {
+                rusqlite::Error::SqliteFailure(e, _) => e.extended_code as i64,
+                _ => {
                     RUSQLITE
                         + match error {
                             rusqlite::Error::SqliteFailure(_, _) => 1,

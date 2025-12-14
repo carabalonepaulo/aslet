@@ -160,7 +160,7 @@ impl AsletConn {
     ///
     /// Returns an [`AsletTask`] that yields **once**, producing a [`VariantArray`] with one of the following forms:
     ///
-    /// * `[OK, rows]` — query executed successfully, with `rows` as an `Array[Array[Variant]]`
+    /// * `[OK, rows, columns]` — query executed successfully, with `rows` as an `Array[Array[Variant]]` and `columns` as `Array[String]`.
     ///   where each inner array represents a row.
     /// * `[FAILED, code, errmsg]` — query failed. `code` is an `int` representing the error type, and `errmsg` is a `String` containing a human-readable error message.
     ///
