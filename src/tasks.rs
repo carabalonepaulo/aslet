@@ -1,26 +1,22 @@
 use godot::prelude::*;
 use slab::Slab;
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{
-        Arc,
-        atomic::{AtomicU8, Ordering::SeqCst},
-    },
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicU8, Ordering::SeqCst},
 };
 
 use crate::api::{aslet::Aslet, task::AsletTask};
 
 #[derive(Debug, Clone)]
-pub struct Tasks(Rc<RefCell<Slab<Gd<AsletTask>>>>);
+pub struct Tasks(Arc<Mutex<Slab<Gd<AsletTask>>>>);
 
 impl Tasks {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(Slab::new())))
+        Self(Arc::new(Mutex::new(Slab::new())))
     }
 
     pub fn create(&self, aslet: Gd<Aslet>) -> (TaskContext, Gd<AsletTask>) {
-        let tasks = &mut *self.0.borrow_mut();
+        let mut tasks = self.0.lock().unwrap();
         let entry = tasks.vacant_entry();
         let id = entry.key();
         let task_ctx = TaskContext::new(id);
@@ -31,7 +27,7 @@ impl Tasks {
     }
 
     pub fn take(&self, key: usize) -> Option<Gd<AsletTask>> {
-        let tasks = &mut *self.0.borrow_mut();
+        let mut tasks = self.0.lock().unwrap();
         tasks.try_remove(key)
     }
 }

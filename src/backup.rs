@@ -106,6 +106,8 @@ impl BackupState {
 
         let src_conn = Box::new(Connection::open(&src_path)?);
         let mut dst_conn = Box::new(Connection::open(&dst_path)?);
+        dst_conn.pragma_update(None, "journal_mode", "WAL")?;
+        dst_conn.pragma_update(None, "synchronous", "NORMAL")?;
         let backup = unsafe {
             let src_ref: *const Connection = &*src_conn;
             let dst_ref: *mut Connection = &mut *dst_conn;

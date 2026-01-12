@@ -140,7 +140,12 @@ impl From<Vec<Value>> for Row {
 impl<'a> From<&'a rusqlite::Row<'_>> for Row {
     fn from(value: &'a rusqlite::Row) -> Self {
         Row((0..value.as_ref().column_count())
-            .map(|i| Value::from(value.get_ref(i).unwrap()))
+            .map(|i| {
+                value
+                    .get_ref(i)
+                    .map(Value::from)
+                    .unwrap_or(Value::Null)
+            })
             .collect())
     }
 }

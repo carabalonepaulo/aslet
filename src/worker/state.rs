@@ -1,5 +1,5 @@
 use std::{
-    rc::Rc,
+    sync::Arc,
     thread::{JoinHandle, spawn},
 };
 
@@ -47,12 +47,12 @@ impl Drop for InnerState {
 }
 
 #[derive(Debug, Clone)]
-pub struct Worker(Rc<InnerState>);
+pub struct Worker(Arc<InnerState>);
 
 impl Worker {
     pub fn new() -> (Self, Receiver<OutputMessage>) {
         let (inner_state, receiver) = InnerState::new();
-        (Self(Rc::new(inner_state)), receiver)
+        (Self(Arc::new(inner_state)), receiver)
     }
 
     pub fn send(&self, msg: InputMessage) {

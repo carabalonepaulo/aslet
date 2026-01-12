@@ -23,8 +23,8 @@ pub fn message_loop(input_receiver: Receiver<InputMessage>, output_sender: Sende
 
             let result = $task.map_err(Error::from);
             $task_ctx.done();
-            if let Err(_) = output_sender.send($output($task_ctx, result)) {
-                printerr(&["aslet instance was dropped prematurely".to_variant()]);
+            if let Err(e) = output_sender.send($output($task_ctx, result)) {
+                printerr(&[format!("failed to send output message: {}", e).to_variant()]);
             }
         }};
     }
@@ -121,6 +121,8 @@ fn open(conn_pool: &mut Slab<Connection>, path: String) -> Result<(usize, String
         .globalize_path(&path)
         .to_string();
     let conn = Connection::open(real_path)?;
+    conn.pragma_update(None, "journal_mode", "WAL")?;
+    conn.pragma_update(None, "synchronous", "NORMAL")?;
     let conn_id = conn_pool.insert(conn);
     Ok((conn_id, path))
 }
@@ -131,6 +133,8 @@ fn begin_transaction(conn_pool: &mut Slab<Connection>, path: String) -> Result<u
         .to_string();
 
     let conn = Connection::open(real_path)?;
+    conn.pragma_update(None, "journal_mode", "WAL")?;
+    conn.pragma_update(None, "synchronous", "NORMAL")?;
     conn.execute("BEGIN TRANSACTION;", [])?;
     let conn_id = conn_pool.insert(conn);
     Ok(conn_id)
