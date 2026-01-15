@@ -8,6 +8,8 @@ use rusqlite::{
     types::{ToSqlOutput, ValueRef},
 };
 
+use crate::error::InternalError;
+
 #[derive(Debug)]
 pub struct Columns(Vec<String>);
 
@@ -85,6 +87,21 @@ impl<'a> From<ValueRef<'a>> for Value {
     }
 }
 
+impl TryFrom<Variant> for Value {
+    type Error = InternalError;
+
+    fn try_from(value: Variant) -> Result<Self, Self::Error> {
+        match value.get_type() {
+            VariantType::INT => Ok(Value::Int(value.to())),
+            VariantType::FLOAT => Ok(Value::Number(value.to())),
+            VariantType::STRING => Ok(Value::String(value.to())),
+            VariantType::PACKED_BYTE_ARRAY => Ok(Value::Blob(value.to())),
+            VariantType::NIL => Ok(Value::Null),
+            ty => Err(InternalError::UnsupportedVariantType(ty)),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Row(Vec<Value>);
 
@@ -112,21 +129,10 @@ impl ToGodot for Row {
 
 impl From<Array<Variant>> for Row {
     fn from(array: Array<Variant>) -> Self {
-        let mut values = vec![];
-        for value in array.iter_shared() {
-            let ty = value.get_type();
-            if ty == VariantType::INT {
-                values.push(Value::Int(value.to()));
-            } else if ty == VariantType::FLOAT {
-                values.push(Value::Number(value.to()));
-            } else if ty == VariantType::STRING {
-                values.push(Value::String(value.to()));
-            } else if ty == VariantType::PACKED_BYTE_ARRAY {
-                values.push(Value::Blob(value.to()));
-            } else if ty == VariantType::NIL {
-                values.push(Value::Null);
-            }
-        }
+        let values = array
+            .iter_shared()
+            .filter_map(|v| Value::try_from(v).ok())
+            .collect();
         Self(values)
     }
 }
@@ -183,13 +189,7 @@ impl From<Vec<Row>> for Rows {
 }
 
 impl From<Array<Array<Variant>>> for Rows {
-    fn from(gd_rows: Array<Array<Variant>>) -> Self {
-        let mut rows: Vec<Row> = Vec::with_capacity(gd_rows.len());
-
-        for gd_row in gd_rows.iter_shared() {
-            rows.push(gd_row.into());
-        }
-
-        Self(rows)
+    fn from(rows: Array<Array<Variant>>) -> Self {
+        Self(rows.iter_shared().map(Row::from).collect())
     }
 }
