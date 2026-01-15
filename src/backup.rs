@@ -1,4 +1,4 @@
-use godot::{builtin::Callable, classes::ProjectSettings, meta::ToGodot};
+use godot::{builtin::Callable, classes::ProjectSettings, meta::ToGodot, obj::Singleton};
 use rusqlite::{
     Connection,
     backup::{Backup, StepResult},

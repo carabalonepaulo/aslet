@@ -87,14 +87,11 @@ impl AsletTask {
     ///     print("Task finished:", result)
     /// ```
     #[func]
-    pub fn wait(&mut self) -> VariantArray {
-        let result: Rc<RefCell<Option<VariantArray>>> = Rc::new(RefCell::new(None));
-        let callback = Callable::from_local_fn("wait_callback", {
+    pub fn wait(&mut self) -> VarArray {
+        let result: Rc<RefCell<Option<VarArray>>> = Rc::new(RefCell::new(None));
+        let callback = Callable::from_fn("wait_callback", {
             let result = result.clone();
-            move |args| {
-                *result.borrow_mut() = Some(args[0].try_to().map_err(|_| ())?);
-                Ok(().to_variant())
-            }
+            move |args| *result.borrow_mut() = Some(args[0].to())
         });
 
         self.base_mut().connect("done", &callback);

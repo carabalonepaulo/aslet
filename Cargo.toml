@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-godot = { version = "0.2.4", features = [
+godot = { version = "0.4.5", features = [
     "experimental-threads",
     "register-docs",
 ] }

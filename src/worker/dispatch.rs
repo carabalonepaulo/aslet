@@ -1,5 +1,5 @@
 use crossbeam::channel::{Receiver, Sender};
-use godot::{classes::ProjectSettings, global::printerr, meta::ToGodot};
+use godot::{classes::ProjectSettings, global::printerr, meta::ToGodot, obj::Singleton};
 use rusqlite::{Connection, ToSql};
 use slab::Slab;
 

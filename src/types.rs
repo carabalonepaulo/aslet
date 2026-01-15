@@ -1,6 +1,6 @@
 use godot::{
-    builtin::{Array, PackedByteArray, Variant, VariantArray, VariantType},
-    meta::ToGodot,
+    builtin::{Array, PackedByteArray, Variant, VariantType},
+    meta::{ByValue, ToGodot},
     prelude::*,
 };
 use rusqlite::{
@@ -24,9 +24,9 @@ impl GodotConvert for Columns {
 }
 
 impl ToGodot for Columns {
-    type ToVia<'v> = PackedStringArray;
+    type Pass = ByValue;
 
-    fn to_godot(&self) -> Self::ToVia<'_> {
+    fn to_godot(&self) -> PackedStringArray {
         let mut array = PackedStringArray::new();
         array.resize(self.0.len());
         for (i, value) in self.0.iter().enumerate() {
@@ -50,9 +50,9 @@ impl GodotConvert for Value {
 }
 
 impl ToGodot for Value {
-    type ToVia<'v> = Variant;
+    type Pass = ByValue;
 
-    fn to_godot(&self) -> Self::ToVia<'_> {
+    fn to_godot(&self) -> Variant {
         match self {
             Value::Int(v) => Variant::from(*v),
             Value::Number(v) => Variant::from(*v),
@@ -116,10 +116,10 @@ impl GodotConvert for Row {
 }
 
 impl ToGodot for Row {
-    type ToVia<'v> = Array<Variant>;
+    type Pass = ByValue;
 
-    fn to_godot(&self) -> Self::ToVia<'_> {
-        let mut row = VariantArray::new();
+    fn to_godot(&self) -> VarArray {
+        let mut row = VarArray::new();
         for value in self.0.iter() {
             row.push(&value.to_variant());
         }
@@ -165,10 +165,10 @@ impl GodotConvert for Rows {
 }
 
 impl ToGodot for Rows {
-    type ToVia<'v> = Array<Variant>;
+    type Pass = ByValue;
 
-    fn to_godot(&self) -> Self::ToVia<'_> {
-        let mut rows = VariantArray::new();
+    fn to_godot(&self) -> VarArray {
+        let mut rows = VarArray::new();
         for row in self.0.iter() {
             rows.push(&row.to_variant());
         }
