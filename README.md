@@ -135,3 +135,21 @@ direct SQLite error codes.
 | 12021 | `SqlInputError`               | Generic SQL input error (e.g., from `NO_ROW_LEFT_TO_QUERY`).                                              |
 | 12022 | `InvalidDatabaseIndex`        | An invalid database index was provided.                                                                   |
 | 12999 | `_`                           | An unknown or unhandled `rusqlite` error variant.                                                         |
+
+## Philosophy & Governance
+
+### Development Model
+
+Aslet follows a cathedral-style development model. The project does not accept
+external code contributions or pull requests.
+
+This decision is intentional and aims to preserve architectural coherence,
+predictability, and long-term maintainability.
+
+### Continuity and User Freedom
+
+Aslet is licensed under the MIT License. Users are free to fork, modify, and
+maintain their own versions independently.
+
+The codebase is written to be idiomatic and self-explanatory to support this
+model without reliance on upstream involvement.
